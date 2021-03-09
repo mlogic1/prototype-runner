@@ -4,18 +4,15 @@ using UnityEngine;
 
 public class CameraController : MonoBehaviour
 {
-    public Transform playerTransform = null;
-	public float cameraDistanceFromPlayer = 20.0f;
+	public Transform playerTransform = null;
+	public float cameraDistanceFromPlayer = 10.0f;
 	public float cameraHeightAbovePlayer = 6.0f;
-	public float smoothCamera = 1.125f;
+	public float smoothCamera = 11.0f;
 
-	// Start is called before the first frame update
-	void Start()
-    {
-        
-    }
-
-	void LateUpdate()
+	/// <summary>
+	/// This Update is used to have the camera follow the player
+	/// </summary>
+	void Update()
 	{
 		if (playerTransform == null)
 		{
