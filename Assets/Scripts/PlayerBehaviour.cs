@@ -1,73 +1,100 @@
-﻿using System.Collections;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class PlayerBehaviour : MonoBehaviour
 {
-    public float playerJumpStrenght = 200.0f;
-    public float playerRunningSpeed = 20.0f;
-    private Rigidbody playerRigidBody = null;
+  private const float LANE_SWITCH_COOLDOWN = 0.3f;
 
-    public float playerLaneSwitchSpeed = 10.0f;
-    private int playerLaneIndex = 1;
-    public List<Transform> runningLanes;
-    
-    public float laneSwitchCooldown = 0.0f;
+  public float playerJumpStrength;
+  public float playerRunningSpeed = 20.0f;
+  private Rigidbody playerRigidBody = null;
 
-    // Start is called before the first frame update
-    void Start()
+  public float playerLaneSwitchSpeed = 10.0f;
+  private int playerLaneIndex = 1;
+  public List<Transform> runningLanes;
+
+  public Transform WinScreen;
+  public Transform LoseScreen;
+
+  private float laneSwitchCooldown = 0.0f;
+
+  private void OnTriggerEnter(Collider other)
+  {
+    if (other.tag.Equals("DeathFloor"))
     {
-        playerRigidBody = GetComponent<Rigidbody>();
+      ShowLoseScreen();
+    }
+    else if (other.tag.Equals("Finish"))
+    {
+      ShowWinScreen();
+    }
+  }
 
-        if (runningLanes.Count != 3)
-		{
-            Debug.LogError("Lanes not sorted properly");
-		}
+  private void ShowLoseScreen()
+  {
+    LoseScreen.gameObject.SetActive(true);
+  }
+
+  private void ShowWinScreen()
+  {
+    WinScreen.gameObject.SetActive(true);
+  }
+
+  // Start is called before the first frame update
+  void Start()
+  {
+    playerRigidBody = GetComponent<Rigidbody>();
+
+    if (runningLanes.Count != 3)
+    {
+      Debug.LogError("Lanes not sorted properly");
+    }
+  }
+
+  // Update is called once per frame
+  void Update()
+  {
+    if (!GameController.GameControllerInstance.gameState.Equals(GameState.Active))
+    {
+      return;
     }
 
-    // Update is called once per frame
-    void Update()
+    if (playerRigidBody == null)
     {
-        if (playerRigidBody == null)
-		{
-            Debug.LogWarning("RigidBody component not found on PlayerBehaviour");
-            return;
-		}
-
-        if (Input.GetKey(KeyCode.Space))
-		{
-            playerRigidBody.AddForce(new Vector3(0.0f, playerJumpStrenght), ForceMode.Impulse);
-		}
-
-        laneSwitchCooldown -= Time.deltaTime;
-        if (laneSwitchCooldown < 0.0f)
-        {
-            laneSwitchCooldown = 0.0f;
-        }
-
-        if (Input.GetKeyDown(KeyCode.A) && laneSwitchCooldown < 0.1f)
-		{
-            playerLaneIndex--;
-            laneSwitchCooldown += 0.35f;
-            if (playerLaneIndex < 0)
-			{
-                playerLaneIndex = 0;
-			}
-		}
-
-        if (Input.GetKeyDown(KeyCode.D) && laneSwitchCooldown < 0.1f)
-        {
-            playerLaneIndex++;
-            laneSwitchCooldown += 0.35f;
-            if (playerLaneIndex > 2)
-            {
-                playerLaneIndex = 2;
-			}
-        }
-
-
-        Transform targetLane = runningLanes[playerLaneIndex];
-        transform.position = new Vector3(Mathf.Lerp(transform.position.x, targetLane.position.x, playerLaneSwitchSpeed * Time.deltaTime), transform.position.y, transform.position.z);    // lerp left and right
-        transform.position += transform.forward * playerRunningSpeed * Time.deltaTime;  // move forward
+      Debug.LogWarning("RigidBody component not found on PlayerBehaviour");
+      return;
     }
+
+    laneSwitchCooldown -= Time.deltaTime;
+    if (laneSwitchCooldown < 0.0f)
+    {
+      laneSwitchCooldown = 0.0f;
+    }
+
+    if (Input.GetKeyDown(KeyCode.A) && laneSwitchCooldown < 0.01f)
+    {
+      playerLaneIndex--;
+      laneSwitchCooldown += LANE_SWITCH_COOLDOWN;
+      if (playerLaneIndex < 0)
+      {
+        playerLaneIndex = 0;
+      }
+    }
+
+    if (Input.GetKeyDown(KeyCode.D) && laneSwitchCooldown < 0.01f)
+    {
+      playerLaneIndex++;
+      laneSwitchCooldown += LANE_SWITCH_COOLDOWN;
+      if (playerLaneIndex > 2)
+      {
+        playerLaneIndex = 2;
+      }
+    }
+
+    Transform targetLane = runningLanes[playerLaneIndex];
+    transform.position = new Vector3(Mathf.Lerp(transform.position.x, targetLane.position.x, playerLaneSwitchSpeed * Time.deltaTime), transform.position.y, transform.position.z);    // lerp left and right
+    transform.position += transform.forward * playerRunningSpeed * Time.deltaTime;  // move forward
+  }
 }
